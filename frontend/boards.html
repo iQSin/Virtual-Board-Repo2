@@ -1,34 +1,81 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Your Boards • Virtual Board</title>
-  <link rel="stylesheet" href="./assets/css/boards.css">
-</head>
 <body>
   <h1>Your Boards</h1>
 
   <nav>
-    <div class="nav-bar">
-        <button id="logout-btn">Logout</button>
-    </div> 
+    <a href="./auth.html">Auth</a>
+    <button id="logout-btn">Logout</button>
   </nav>
 
-<!--   JWT token testing
+  <!-- Session card -->
+  <section class="card">
+    <h2>Session</h2>
+    <p><strong>JWT:</strong></p>
+    <pre id="token-preview"></pre>
+    <p><strong>Payload:</strong></p>
+    <pre id="payload-preview"></pre>
+  </section>
 
-  <h2>Session</h2>
-  <p><strong>JWT:</strong></p>
-  <pre id="token-preview"></pre>
-  <p><strong>Payload:</strong></p>
-  <pre id="payload-preview"></pre>
+  <!-- Boards controls -->
+  <section class="card">
+    <h2>Boards</h2>
+    <p id="status"></p>
+    <div class="controls">
+      <button id="refresh-boards-btn" class="ghost">Refresh boards</button>
+      <label>Choose board:
+        <select id="board-select"></select>
+      </label>
+      <!-- Optional: quick actions -->
+      <button id="create-board-btn">New board</button>
+      <button id="delete-board-btn" class="danger">Delete board</button>
+    </div>
+    <div id="boards-list"></div>
+  </section>
 
--->
-  
-  <p id="status"></p>
-  <button id="refresh-boards-btn">Refresh boards</button>
+  <!-- Board workspace -->
+  <section class="board-wrap">
+    <div class="board-toolbar">
+      <div class="tool">
+        <button id="add-note-btn" class="ghost">+ Note</button>
+        <button id="add-note-pink" class="ghost">Pink</button>
+        <button id="add-note-blue" class="ghost">Blue</button>
+        <button id="add-note-yellow" class="ghost">Yellow</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="tool">
+        <input id="search-notes" type="search" placeholder="Search notes…">
+      </div>
+    </div>
 
-  <!-- Placeholder for notes UI later -->
+    <div class="board-canvas" id="board">
+      <div class="board-space" id="board-space">
+        <!-- You will programmatically inject .note elements here -->
+        <!-- Example structure for each note:
+        <article class="note" data-id="123" data-color="yellow" style="left:200px; top:120px; width:240px;">
+          <header class="note-header">
+            <span class="note-handle">⋮⋮</span>
+            <div class="note-title">Feature ideas</div>
+            <div class="note-actions">
+              <button class="ghost" data-action="color">🎨</button>
+              <button class="ghost" data-action="duplicate">⎘</button>
+              <button class="ghost" data-action="delete">✕</button>
+            </div>
+          </header>
+          <div class="note-content" contenteditable="true">Write something…</div>
+          <footer class="note-footer">
+            <span class="tag">#backlog</span>
+            <span class="tag">#ui</span>
+          </footer>
+          <span class="note-resize" data-resize></span>
+        </article>
+        -->
+      </div>
 
-  <script src="./assets/js/app.js"></script>
+      <!-- Optional minimap -->
+      <div class="minimap" id="minimap">
+        <div class="viewport" id="minimap-viewport" style="left:10px; top:10px; width:60px; height:40px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <script src="./assets/css/boards.css"></script>
 </body>
-</html>
