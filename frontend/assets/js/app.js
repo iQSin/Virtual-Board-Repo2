@@ -1,5 +1,3 @@
-// ---- Config ----
-// Point this at your Render service. Include /api since your server mounts routes at /api/*
 const CONFIG = { authApiBase: "https://virtual-board-auth-api.onrender.com/api" };
 
 // ---- Helpers ----
@@ -51,16 +49,6 @@ async function apiGet(path, { auth = false } = {}) {
   return data;
 }
 
-// Optional: quick health check helper (useful for debugging)
-async function apiHealth() {
-  try {
-    const res = await fetch(`${CONFIG.authApiBase.replace(/\/api$/, '')}/health`);
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
 // ---- Page: auth.html ----
 (function initAuthPage() {
   const signupForm = $('#signup-form');
@@ -104,7 +92,7 @@ async function apiHealth() {
   });
 })();
 
-// ---- Page: boards.html ----
+// boards.html
 (function initBoardsPage() {
   const boardsBtn = $('#refresh-boards-btn');
   const logoutBtn = $('#logout-btn');
