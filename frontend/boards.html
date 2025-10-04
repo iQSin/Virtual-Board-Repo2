@@ -17,6 +17,10 @@
     <p id="status"></p>
   </section>
 
+  <input id="jwt-input" placeholder="paste JWT here" style="width: 100%;">
+  <button id="decode-btn">Decode</button>
+  <pre id="payload"></pre>
+
   <!-- Simple Boards Window -->
   <section class="board" aria-label="Board workspace">
     <div class="board-top">
@@ -40,5 +44,14 @@
   </section>
 
   <script src="./assets/js/app.js"></script>
+  <script>
+    document.getElementById('decode-btn').addEventListener('click', () =>
+    {
+      const t = document.getElementById('jwt-input').value.trim();
+      const p = decodeJwtPayload(t);
+      document.getElementById('payload').textContent =
+        p ? JSON.stringify(p, null, 2) : '(invalid token)';
+    });
+  </script>
 </body>
 </html>
