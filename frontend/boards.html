@@ -9,25 +9,35 @@
   <h1>Your Boards</h1>
 
   <nav>
-    <div class="nav-bar">
-        <button id="logout-btn">Logout</button>
-    </div> 
+    <a href="./auth.html">Home</a>
+    <button id="logout-btn">Logout</button>
   </nav>
+  <section aria-labelledby="boards-heading">
+    <h2 id="boards-heading">Board</h2>
+    <p id="status"></p>
+  </section>
 
-<!--   JWT token testing
+  <!-- Simple Boards Window -->
+  <section class="board" aria-label="Board workspace">
+    <div class="board-top">
+      <button id="new-note-btn">New note</button>
 
-  <h2>Session</h2>
-  <p><strong>JWT:</strong></p>
-  <pre id="token-preview"></pre>
-  <p><strong>Payload:</strong></p>
-  <pre id="payload-preview"></pre>
+      <!-- Color picker -->
+      <div class="color-picker" aria-label="Note color">
+        <button class="color-dot" data-color="yellow" aria-label="Yellow note" title="Yellow" tabindex="0"></button>
+        <button class="color-dot" data-color="pink"   aria-label="Pink note"   title="Pink"   tabindex="0"></button>
+        <button class="color-dot" data-color="mint"   aria-label="Mint note"   title="Mint"   tabindex="0"></button>
+        <button class="color-dot" data-color="blue"   aria-label="Blue note"   title="Blue"   tabindex="0"></button>
+        <button class="color-dot" data-color="lav"    aria-label="Lavender note" title="Lavender" tabindex="0"></button>
+      </div>
+    </div>
 
--->
-  
-  <p id="status"></p>
-  <button id="refresh-boards-btn">Refresh boards</button>
-
-  <!-- Placeholder for notes UI later -->
+    <div class="board-canvas" id="board">
+      <div class="board-space" id="board-space">
+        <!-- Notes will be injected here by app.js -->
+      </div>
+    </div>
+  </section>
 
   <script src="./assets/js/app.js"></script>
 </body>

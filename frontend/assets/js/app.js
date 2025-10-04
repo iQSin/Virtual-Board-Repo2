@@ -1,4 +1,3 @@
-
 const CONFIG = { authApiBase: "https://virtual-board-auth-api.onrender.com/api" };
 
 const $ = (sel) => document.querySelector(sel);
@@ -58,6 +57,7 @@ async function apiGet(path, { auth = false } = {}) {
   return data;
 }
 
+// ---- Page: auth.html ----
 (function initAuthPage() {
   const signupForm = $('#signup-form');
   const loginForm = $('#login-form');
@@ -98,6 +98,7 @@ async function apiGet(path, { auth = false } = {}) {
   });
 })();
 
+// boards.html
 (function initBoardsPage() {
   const boardsBtn = $('#refresh-boards-btn');
   const logoutBtn = $('#logout-btn');
@@ -168,7 +169,7 @@ async function apiGet(path, { auth = false } = {}) {
       }
   
 
-      renderBoards(data);
+      renderBoards(data.notes || []);
       setStatus('Boards loaded.');
     } catch (err) {
       setStatus(`Failed to load boards: ${err.message}`, true);
