@@ -1,8 +1,6 @@
-// ---- Config ----
-// Point this at your Render service. Include /api since your server mounts routes at /api/*
+
 const CONFIG = { authApiBase: "https://virtual-board-auth-api.onrender.com/api" };
 
-// ---- Helpers ----
 const $ = (sel) => document.querySelector(sel);
 
 function setStatus(msg, isError = false) {
@@ -27,12 +25,20 @@ function decodeJwtPayload(token) {
   } catch { return null; }
 }
 
-async function apiPost(path, body) {
+async function apiPost(path, body, { auth = false } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) {
+    const token = getToken();
+    if (!token) throw new Error('Not logged in');
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${CONFIG.authApiBase}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body ?? {})
   });
+
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
   return data;
@@ -45,27 +51,17 @@ async function apiGet(path, { auth = false } = {}) {
     if (!token) throw new Error('Not logged in');
     headers['Authorization'] = `Bearer ${token}`;
   }
+
   const res = await fetch(`${CONFIG.authApiBase}${path}`, { headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
   return data;
 }
 
-// Optional: quick health check helper (useful for debugging)
-async function apiHealth() {
-  try {
-    const res = await fetch(`${CONFIG.authApiBase.replace(/\/api$/, '')}/health`);
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-// ---- Page: auth.html ----
 (function initAuthPage() {
   const signupForm = $('#signup-form');
   const loginForm = $('#login-form');
-  if (!signupForm && !loginForm) return; // not on auth page
+  if (!signupForm && !loginForm) return;
 
   signupForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -75,7 +71,6 @@ async function apiHealth() {
     if (!username || !password) return setStatus('Enter username and password.', true);
 
     try {
-      // NOTE: now hits POST /api/auth/register
       const { token } = await apiPost('/auth/register', { username, password });
       saveToken(token);
       setStatus('Signed up. Redirecting to boards…');
@@ -93,7 +88,6 @@ async function apiHealth() {
     if (!username || !password) return setStatus('Enter username and password.', true);
 
     try {
-      // NOTE: now hits POST /api/auth/login
       const { token } = await apiPost('/auth/login', { username, password });
       saveToken(token);
       setStatus('Logged in. Redirecting to boards…');
@@ -104,31 +98,20 @@ async function apiHealth() {
   });
 })();
 
-// ---- Page: boards.html ----
 (function initBoardsPage() {
   const boardsBtn = $('#refresh-boards-btn');
   const logoutBtn = $('#logout-btn');
-  const tokenPreview = $('#token-preview');
-  const payloadPreview = $('#payload-preview');
   const boardsList = $('#boards-list');
   const boardSelect = $('#board-select');
-  if (!boardsBtn && !logoutBtn && !tokenPreview) return; // not on boards page
 
-  // Require auth
+  if (!boardsBtn && !logoutBtn) return;
+
   if (!getToken()) {
     location.href = './auth.html';
     return;
   }
 
-  function renderSession() {
-    const token = getToken();
-    if (tokenPreview) tokenPreview.textContent = token || '(no token)';
-    const payload = token ? decodeJwtPayload(token) : null;
-    if (payloadPreview) payloadPreview.textContent = payload ? JSON.stringify(payload, null, 2) : '(no payload)';
-  }
-
   function renderBoards(boards) {
-    // dropdown
     if (boardSelect) {
       boardSelect.innerHTML = '';
       if (boards?.length) {
@@ -146,7 +129,6 @@ async function apiHealth() {
       }
     }
 
-    // list
     if (boardsList) {
       boardsList.innerHTML = '';
       if (!boards?.length) {
@@ -163,15 +145,38 @@ async function apiHealth() {
 
   async function loadBoards() {
     try {
-      setStatus('Loading...');
-      // NOTE: now hits GET /api/boards with Authorization header
-      const { boards } = await apiGet('/boards', { auth: true });
-      renderBoards(boards);
+      setStatus('Loading boards...');
+  
+      const token = localStorage.getItem('vb_token'); 
+      console.log('Sending token:', token);
+  
+      if (!token) throw new Error('No token found. Please log in.');
+  
+      const res = await fetch('https://virtual-board-repo2.onrender.com/notes', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await res.json();
+      console.log('Response:', data);
+  
+      if (res.status === 401) {
+        throw new Error('Unauthorized. Invalid or expired token.');
+      }
+  
+
+      renderBoards(data);
       setStatus('Boards loaded.');
     } catch (err) {
       setStatus(`Failed to load boards: ${err.message}`, true);
+      console.error(err);
     }
   }
+  
+  
 
   boardsBtn?.addEventListener('click', loadBoards);
   logoutBtn?.addEventListener('click', () => {
@@ -179,12 +184,10 @@ async function apiHealth() {
     location.href = './auth.html';
   });
 
-  renderSession();
   loadBoards();
 
-  // light polling
-  const interval = setInterval(() => {
-    if (!getToken()) { clearInterval(interval); return; }
+  setInterval(() => {
+    if (!getToken()) return;
     loadBoards();
   }, 15000);
 })();
