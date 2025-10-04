@@ -169,7 +169,7 @@ async function apiGet(path, { auth = false } = {}) {
       }
   
 
-      renderBoards(data);
+      renderBoards(data.notes || []);
       setStatus('Boards loaded.');
     } catch (err) {
       setStatus(`Failed to load boards: ${err.message}`, true);

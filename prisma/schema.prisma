@@ -7,15 +7,9 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-model User {
-  id       Int     @id @default(autoincrement())
-  username String  @unique
-  password String
-  notes    Note[]
-}
 model Note {
-  id        Int    @id @default(autoincrement())
-  author_id Int
-  note      String
-  user      User   @relation(fields: [author_id], references: [id])
+  id        Int      @id @default(autoincrement())
+  text      String
+  createdAt DateTime @default(now())
+  userId    Int      
 }
