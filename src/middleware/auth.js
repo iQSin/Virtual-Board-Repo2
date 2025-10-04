@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
         
         req.authUser = user
 
-        console.log(`token valid for user ${user.sub} ${user.name}`)
+        console.log(`token valid for user ${user.userId} (${user.username})`)
 
         next()
     } catch (error) {
