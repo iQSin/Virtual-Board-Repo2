@@ -1,18 +1,12 @@
 const CONFIG = { authApiBase: "https://virtual-board-auth-api.onrender.com/api" };
 
-const $ = (sel) => document.querySelector(sel);
-
-function setStatus(msg, isError = false) {
-  const el = $('#status');
-  if (!el) return;
-  el.textContent = msg || '';
-  el.style.color = isError ? 'red' : 'black';
-}
+// Error handling i denna fil är gjord till en stor del med ChatGPT
 
 function saveToken(token) { localStorage.setItem('vb_token', token); }
 function getToken() { return localStorage.getItem('vb_token'); }
 function clearToken() { localStorage.removeItem('vb_token'); }
 
+// --- JWT decode (unchanged) --- REMOVE
 function decodeJwtPayload(token) {
   try {
     const parts = token.split('.');
@@ -23,7 +17,7 @@ function decodeJwtPayload(token) {
     return JSON.parse(json);
   } catch { return null; }
 }
-
+//Api funktionerna
 async function apiPost(path, body, { auth = false } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (auth) {
@@ -56,57 +50,66 @@ async function apiGet(path, { auth = false } = {}) {
   if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
   return data;
 }
-
-// ---- Page: auth.html ----
+//Auth kod
 (function initAuthPage() {
-  const signupForm = $('#signup-form');
-  const loginForm = $('#login-form');
+  const signupForm = document.getElementById('signup-form');
+  const loginForm  = document.getElementById('login-form');
+  const statusEl   = document.getElementById('status');
+
   if (!signupForm && !loginForm) return;
 
   signupForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    setStatus('');
-    const username = $('#signup-username').value.trim();
-    const password = $('#signup-password').value;
-    if (!username || !password) return setStatus('Enter username and password.', true);
+    if (statusEl) { statusEl.textContent = ''; statusEl.style.color = 'black'; }
+
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value;
+    if (!username || !password) {
+      if (statusEl) { statusEl.textContent = 'Enter username and password.'; statusEl.style.color = 'red'; }
+      return;
+    }
 
     try {
       const { token } = await apiPost('/auth/register', { username, password });
       saveToken(token);
-      setStatus('Signed up. Redirecting to boards…');
+      if (statusEl) { statusEl.textContent = 'Signed up. Redirecting to boards…'; statusEl.style.color = 'black'; }
       location.href = './boards.html';
     } catch (err) {
-      setStatus(`Signup failed: ${err.message}`, true);
+      if (statusEl) { statusEl.textContent = `Signup failed: ${err.message}`; statusEl.style.color = 'red'; }
     }
   });
 
   loginForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    setStatus('');
-    const username = $('#login-username').value.trim();
-    const password = $('#login-password').value;
-    if (!username || !password) return setStatus('Enter username and password.', true);
+    if (statusEl) { statusEl.textContent = ''; statusEl.style.color = 'black'; }
+
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!username || !password) {
+      if (statusEl) { statusEl.textContent = 'Enter username and password.'; statusEl.style.color = 'red'; }
+      return;
+    }
 
     try {
       const { token } = await apiPost('/auth/login', { username, password });
       saveToken(token);
-      setStatus('Logged in. Redirecting to boards…');
+      if (statusEl) { statusEl.textContent = 'Logged in. Redirecting to boards…'; statusEl.style.color = 'black'; }
       location.href = './boards.html';
     } catch (err) {
-      setStatus(`Login failed: ${err.message}`, true);
+      if (statusEl) { statusEl.textContent = `Login failed: ${err.message}`; statusEl.style.color = 'red'; }
     }
   });
 })();
 
-// boards.html
+//Board kod
 (function initBoardsPage() {
-  const boardsBtn = $('#refresh-boards-btn');
-  const logoutBtn = $('#logout-btn');
-  const boardsList = $('#boards-list');
-  const boardSelect = $('#board-select');
+  const boardsBtn   = document.getElementById('refresh-boards-btn');
+  const logoutBtn   = document.getElementById('logout-btn');
+  const boardsList  = document.getElementById('boards-list');
+  const boardSelect = document.getElementById('board-select');
+  const statusEl    = document.getElementById('status');
 
   if (!boardsBtn && !logoutBtn) return;
-
   if (!getToken()) {
     location.href = './auth.html';
     return;
@@ -146,13 +149,12 @@ async function apiGet(path, { auth = false } = {}) {
 
   async function loadBoards() {
     try {
-      setStatus('Loading boards...');
-  
-      const token = localStorage.getItem('vb_token'); 
-      console.log('Sending token:', token);
-  
+      if (statusEl) { statusEl.textContent = 'Loading boards...'; statusEl.style.color = 'black'; }
+
+      const token = localStorage.getItem('vb_token');
       if (!token) throw new Error('No token found. Please log in.');
-  
+
+      // If you're testing against your repo2 API:
       const res = await fetch('https://virtual-board-repo2.onrender.com/notes', {
         method: 'GET',
         headers: {
@@ -160,24 +162,21 @@ async function apiGet(path, { auth = false } = {}) {
           'Content-Type': 'application/json'
         }
       });
-  
+
       const data = await res.json();
-      console.log('Response:', data);
-  
       if (res.status === 401) {
         throw new Error('Unauthorized. Invalid or expired token.');
       }
-  
 
+      // renderBoards expects an array of boards. If your /notes endpoint returns notes,
+      // swap this call to your proper boards endpoint when ready:
       renderBoards(data);
-      setStatus('Boards loaded.');
+      if (statusEl) { statusEl.textContent = 'Boards loaded.'; statusEl.style.color = 'black'; }
     } catch (err) {
-      setStatus(`Failed to load boards: ${err.message}`, true);
+      if (statusEl) { statusEl.textContent = `Failed to load boards: ${err.message}`; statusEl.style.color = 'red'; }
       console.error(err);
     }
   }
-  
-  
 
   boardsBtn?.addEventListener('click', loadBoards);
   logoutBtn?.addEventListener('click', () => {
