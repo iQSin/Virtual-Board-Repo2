@@ -108,13 +108,105 @@ async function apiGet(path, { auth = false } = {}) {
   const boardsList  = document.getElementById('boards-list');
   const boardSelect = document.getElementById('board-select');
   const statusEl    = document.getElementById('status');
+  const newNoteBtn = document.getElementById('new-note-btn');
+  const newNoteInput = document.getElementById('new-note-text');
 
   if (!boardsBtn && !logoutBtn) return;
   if (!getToken()) {
     location.href = './auth.html';
     return;
   }
-
+  function renderNotes(notes) {
+    const boardSpace = document.getElementById('board-space');
+    if (!boardSpace) return;
+    boardSpace.innerHTML = '';
+    
+    if (!notes?.length) {
+      boardSpace.textContent = 'No notes.';
+      return;
+    }
+  
+    notes.forEach((n, i) => {
+      const div = document.createElement('div');
+      div.className = 'note';
+      div.textContent = n.text;
+    
+      const spacing = 240;
+      div.style.top = `20px`;
+      div.style.left = `${20 + i * spacing}px`; 
+    
+      boardSpace.appendChild(div);
+    });
+  }
+  function makeDraggable(note) {
+    let offsetX = 0
+    let offsetY = 0
+    let isDragging = false
+  
+    note.addEventListener('mousedown', (e) => {
+      if (e.target.classList.contains('delete-btn')) return
+      isDragging = true
+      offsetX = e.clientX - note.offsetLeft
+      offsetY = e.clientY - note.offsetTop
+      note.style.cursor = 'grabbing'
+      note.style.zIndex = 1000
+    })
+  
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return
+      note.style.left = `${e.clientX - offsetX}px`
+      note.style.top = `${e.clientY - offsetY}px`
+    })
+  
+    document.addEventListener('mouseup', () => {
+      if (!isDragging) return
+      isDragging = false
+      note.style.cursor = 'grab'
+      note.style.zIndex = ''
+    })
+  }
+  
+  function renderNotes(notes) {
+    const boardSpace = document.getElementById('board-space');
+    if (!boardSpace) return;
+    boardSpace.innerHTML = '';
+  
+    if (!notes?.length) {
+      boardSpace.textContent = 'No notes.';
+      return;
+    }
+  
+    notes.forEach((n, i) => {
+      const div = document.createElement('div');
+      div.className = 'note';
+      div.textContent = n.text;
+      const spacing = 240;
+      div.style.top = `20px`;
+      makeDraggable(div);
+      div.style.left = `${20 + i * spacing}px`; 
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = '✕';
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.addEventListener('click', async () => {
+        try {
+          const token = getToken();
+          const res = await fetch(`https://virtual-board-repo2.onrender.com/notes/${n.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+  
+          if (!res.ok) throw new Error('Could not delete note');
+          div.remove(); // remove from UI
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+      });
+  
+      div.appendChild(deleteBtn);
+      boardSpace.appendChild(div);
+    });
+  }
   function renderBoards(boards) {
     if (boardSelect) {
       boardSelect.innerHTML = '';
@@ -154,7 +246,6 @@ async function apiGet(path, { auth = false } = {}) {
       const token = localStorage.getItem('vb_token');
       if (!token) throw new Error('No token found. Please log in.');
 
-      // If you're testing against your repo2 API:
       const res = await fetch('https://virtual-board-repo2.onrender.com/notes', {
         method: 'GET',
         headers: {
@@ -163,14 +254,12 @@ async function apiGet(path, { auth = false } = {}) {
         }
       });
 
-      const data = await res.json();
+      const notes = await res.json();
       if (res.status === 401) {
         throw new Error('Unauthorized. Invalid or expired token.');
       }
+      renderNotes(notes || []);
 
-      // renderBoards expects an array of boards. If your /notes endpoint returns notes,
-      // swap this call to your proper boards endpoint when ready:
-      renderBoards(data);
       if (statusEl) { statusEl.textContent = 'Boards loaded.'; statusEl.style.color = 'black'; }
     } catch (err) {
       if (statusEl) { statusEl.textContent = `Failed to load boards: ${err.message}`; statusEl.style.color = 'red'; }
@@ -183,9 +272,37 @@ async function apiGet(path, { auth = false } = {}) {
     clearToken();
     location.href = './auth.html';
   });
-
+  newNoteBtn?.addEventListener('click', addNote);
   loadBoards();
-
+  async function addNote() {
+    const text = newNoteInput.value.trim();
+    if (!text) {
+      alert('Please write something first!');
+      return;
+    }
+  
+    try {
+      const token = getToken();
+      if (!token) throw new Error('No token found');
+  
+      const res = await fetch('https://virtual-board-repo2.onrender.com/notes', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text })
+      });
+  
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  
+      newNoteInput.value = '';
+      loadBoards();
+    } catch (err) {
+      console.error('Failed to add note:', err);
+      alert('Could not create note.');
+    }
+  }
   setInterval(() => {
     if (!getToken()) return;
     loadBoards();
