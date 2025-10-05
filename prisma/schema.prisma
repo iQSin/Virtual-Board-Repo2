@@ -11,5 +11,8 @@ model Note {
   id        Int      @id @default(autoincrement())
   text      String
   createdAt DateTime @default(now())
-  userId    Int      
+  userId    Int
+  x         Int?
+  y         Int?
+  color     String?
 }

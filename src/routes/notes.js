@@ -23,14 +23,17 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
-      const { text } = req.body
-      const note = await prisma.note.create({
-        data: {
-          text,
-          userId: req.authUser.userId
-        }
-      });
-      res.json(note)
+        const { text, x, y, color } = req.body
+        const note = await prisma.note.create({
+          data: {
+            text,
+            userId: req.authUser.userId,
+            x,
+            y,
+            color
+          }
+        })
+        res.json(note)
     } catch (error) {
       console.error(error)
       res.status(500).json({ error: 'Failed to create note' })

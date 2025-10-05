@@ -183,6 +183,7 @@ async function apiGet(path, { auth = false } = {}) {
       const spacing = 240;
       div.style.top = `20px`;
       makeDraggable(div);
+      if (n.color) div.dataset.color = n.color;
       div.style.left = `${20 + i * spacing}px`; 
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = '✕';
@@ -291,7 +292,7 @@ async function apiGet(path, { auth = false } = {}) {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text: noteText, x: 20, y: 20, color: selectedColor })
       });
   
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
