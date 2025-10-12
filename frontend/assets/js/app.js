@@ -73,7 +73,7 @@ async function apiGet(path, { auth = false } = {}) {
       const { token } = await apiPost('/auth/register', { username, password });
       saveToken(token);
       if (statusEl) { statusEl.textContent = 'Signed up. Redirecting to boards…'; statusEl.style.color = 'black'; }
-      location.href = `https://ws-virtual-board-next-level.onrender.com/?token=${token}`;
+      location.href = `https://ws-virtual-board-next-level.onrender.com/?token=${encodeURIComponent(token)}`;
     } catch (err) {
       if (statusEl) { statusEl.textContent = `Signup failed: ${err.message}`; statusEl.style.color = 'red'; }
     }
@@ -94,7 +94,7 @@ async function apiGet(path, { auth = false } = {}) {
       const { token } = await apiPost('/auth/login', { username, password });
       saveToken(token);
       if (statusEl) { statusEl.textContent = 'Logged in. Redirecting to boards…'; statusEl.style.color = 'black'; }
-      location.href = `https://ws-virtual-board-next-level.onrender.com/?token=${token}`;
+      location.href = `https://ws-virtual-board-next-level.onrender.com/?token=${encodeURIComponent(token)}`;
     } catch (err) {
       if (statusEl) { statusEl.textContent = `Login failed: ${err.message}`; statusEl.style.color = 'red'; }
     }
