@@ -73,7 +73,7 @@ async function apiGet(path, { auth = false } = {}) {
       const { token } = await apiPost('/auth/register', { username, password });
       saveToken(token);
       if (statusEl) { statusEl.textContent = 'Signed up. Redirecting to boards…'; statusEl.style.color = 'black'; }
-      location.href = location.href = `https://ws-virtual-board-next-level.onrender.com/?token=${encodeURIComponent(token)}`;
+      location.href = `https://ws-virtual-board-next-level.onrender.com/?token=${encodeURIComponent(token)}`;
     } catch (err) {
       if (statusEl) { statusEl.textContent = `Signup failed: ${err.message}`; statusEl.style.color = 'red'; }
     }
