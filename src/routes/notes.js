@@ -50,6 +50,27 @@ router.put('/:id', (req, res) => {
 
 })
 
+router.patch('/:id', async (req, res) => {
+    const noteId = parseInt(req.params.id)
+    const { x, y, color, text } = req.body
+  
+    try {
+      const updated = await prisma.note.updateMany({
+        where: { id: noteId, userId: req.authUser.userId },
+        data: { x, y, color, text }
+      })
+  
+      if (updated.count === 0) {
+        return res.status(404).json({ error: 'Note not found or unauthorized' })
+      }
+  
+      const updatedNote = await prisma.note.findUnique({ where: { id: noteId } })
+      res.json(updatedNote)
+    } catch (err) {
+      console.error(err)
+      res.status(500).json({ error: 'Could not update note' })
+    }
+  })
 router.delete('/:id', async (req, res) => {
     try {
       const noteId = parseInt(req.params.id)
